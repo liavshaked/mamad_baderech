@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ממד בדרך – מקלטים במסלול הנסיעה</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <!-- Hebrew font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside id="sidebar">
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="פתח/סגור תפריט">☰</button>
+
+    <div class="sidebar-content">
+        <!-- Header -->
+        <div class="sidebar-header">
+            <h1>🛡️ ממד בדרך</h1>
+            <p class="subtitle">מצא מקלטים במסלול הנסיעה שלך</p>
+        </div>
+
+        <!-- Origin -->
+        <div class="input-group">
+            <label for="start-input">נקודת מוצא</label>
+            <div class="input-wrapper">
+                <input type="text" id="start-input" placeholder="חפש כתובת..." autocomplete="off">
+                <button id="locate-btn" class="locate-btn" title="המיקום שלי">📍 המיקום שלי</button>
+                <button id="pick-start-btn" class="icon-btn pick-map-btn" title="בחר על המפה">🗺️</button>
+            </div>
+            <ul id="start-suggestions" class="suggestions"></ul>
+        </div>
+
+        <!-- Destination -->
+        <div class="input-group">
+            <label for="end-input">יעד</label>
+            <div class="input-wrapper">
+                <input type="text" id="end-input" placeholder="חפש כתובת..." autocomplete="off">
+                <button id="pick-end-btn" class="icon-btn pick-map-btn" title="בחר על המפה">🗺️</button>
+            </div>
+            <ul id="end-suggestions" class="suggestions"></ul>
+        </div>
+
+        <!-- Swap button -->
+        <button id="swap-btn" class="swap-btn" title="החלף מוצא ויעד">⇅ החלף כיוון</button>
+
+        <!-- Map pick banner (hidden by default) -->
+        <div id="pick-banner" class="pick-banner hidden">
+            <span id="pick-banner-text">לחצו על המפה לבחירת נקודת מוצא</span>
+            <button id="pick-cancel-btn" class="pick-cancel-btn">ביטול</button>
+        </div>
+
+        <!-- Walking time selector (maps to distance internally) -->
+        <div class="input-group">
+            <label>🚶 זמן הליכה למקלט:</label>
+            <div class="walk-time-selector">
+                <button class="walk-btn" data-radius="240">3 דקות</button>
+                <button class="walk-btn active" data-radius="390">5 דקות</button>
+                <button class="walk-btn" data-radius="540">7 דקות</button>
+            </div>
+        </div>
+
+
+        <!-- Find Route button -->
+        <button id="find-route-btn" class="primary-btn">🔍 חפש מסלול</button>
+
+        <!-- Route info panel (hidden by default) -->
+        <div id="route-info" class="route-info hidden"></div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <h3>מקרא צבעי מסלול</h3>
+            <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> מקלט בטווח הליכה</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> מקלט בטווח בינוני</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> רחוק ממקלט</div>
+            <div class="legend-item"><span class="legend-dot shelter-dot"></span> מקלט / ממ"ד</div>
+        </div>
+
+        <!-- About button -->
+        <button id="about-btn" class="about-btn">ℹ️ אודות האתר</button>
+        <p class="builder-credit">יוצר ובונה האתר: ליאב שקד</p>
+    </div>
+</aside>
+
+<!-- ==================== ABOUT MODAL ==================== -->
+<div id="about-modal" class="about-overlay hidden">
+    <div class="about-card">
+        <button id="about-close" class="about-close">&times;</button>
+        <h2>🛡️ ממ"ד בדרך</h2>
+        <p class="about-tagline">מערכת שמראה לך את המקלטים לאורך כל מסלול נסיעה.</p>
+
+        <div class="about-section">
+            <h3>🚀 איך זה עובד?</h3>
+            <ol class="about-steps">
+                <li>הזינו נקודת מוצא – חפשו כתובת, השתמשו במיקום הנוכחי שלכם, או סמנו על המפה.</li>
+                <li>הזינו יעד – חפשו כתובת או סמנו על המפה.</li>
+                <li>לחצו “חפש מסלול” – המערכת תחשב את המסלול האופטימלי ותציג את כל המקלטים בדרך.</li>
+            </ol>
+        </div>
+
+        <div class="about-section">
+            <h3>🟢 מה אומרים הצבעים?</h3>
+            <ul class="about-colors">
+                <li><span class="color-dot" style="background:#22c55e"></span> <strong>ירוק</strong> – יש מקלט במרחק הליכה שהגדרתם.</li>
+                <li><span class="color-dot" style="background:#f59e0b"></span> <strong>כתום</strong> – יש מקלט בטווח בינוני, תצטרכו להגיע אליו מהר יותר.</li>
+                <li><span class="color-dot" style="background:#ef4444"></span> <strong>אדום</strong> – אין מקלט קרוב. שימו לב לקטע הזה.</li>
+            </ul>
+        </div>
+
+        <div class="about-section">
+            <h3>⚠️ חשוב לדעת</h3>
+            <p class="about-disclaimer">
+                המפה מציגה <strong>קרבה גאוגרפית</strong> לנקודות מיגון הרשומות כמקלטים,
+                אבל היא <strong>לא מתחייבת לבדוק אם אפשר להגיע בפועל</strong> מהכביש למקלט.
+                למשל, בכבישים מהירים כמו איילון, או בקטעים עם גדרות ומחסומים,
+                ייתכן שהמקלט נמצא בקרבת מקום אבל ללא גישה רגלית אליו.
+            </p>
+        </div>
+
+        <div class="about-section">
+            <h3>📋 תנאי שימוש</h3>
+            <p class="about-terms">
+                השימוש באתר הוא באחריותכם המלאה.
+                המידע מגיע ממפות ישראל (GovMap) ועשוי להכיל אי-דיוקים או מידע לא עדכני.
+                <strong>אין ליוצר האתר כל אחריות לנזק הנובע משימוש במידע המוצג.</strong>
+                תמיד פעלו לפי הנחיות פיקוד העורף וודאו שאתם מכירים את המקלטים בסביבתכם.
+            </p>
+        </div>
+
+        <div class="about-section about-contact">
+            <h3>🐛 מצאתם באג? יש לכם רעיון?</h3>
+            <p>נשמח לשמוע מכם! שלחו לנו:</p>
+            <a href="mailto:liavshaked08@gmail.com" class="about-email">liavshaked08@gmail.com</a>
+        </div>
+
+        <p class="about-footer">נבנה בישראל 🇮🇱 · שימרו על עצמכם</p>
+        <p class="about-footer">יוצר ובונה האתר: ליאב שקד</p>
+    </div>
+</div>
+
+<!-- ==================== MAP ==================== -->
+<div id="map"></div>
+
+<!-- ==================== LOADING OVERLAY ==================== -->
+<div id="loading" class="loading hidden">
+    <div class="loading-card">
+        <div class="spinner"></div>
+        <p>מחפש מסלול ומקלטים...</p>
+    </div>
+</div>
+
+<!-- ==================== TOAST ==================== -->
+<div id="toast-container"></div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
