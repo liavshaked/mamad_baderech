@@ -775,43 +775,165 @@ body {
 @media (max-width: 768px) {
     :root { --sidebar-w: 100vw; }
 
+    body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+
     #sidebar {
         width: 100vw;
         height: auto;
-        max-height: 55vh;
+        max-height: 65vh;
         top: auto;
         bottom: 0;
         right: 0;
         border-left: none;
-        border-top: 1px solid rgba(148,163,184,.12);
-        border-radius: 20px 20px 0 0;
+        border-top: 1px solid rgba(148,163,184,.15);
+        border-radius: 18px 18px 0 0;
         transform: none;
+        transition: transform .35s cubic-bezier(.32,.72,0,1), box-shadow .35s ease;
+        box-shadow: 0 -4px 30px rgba(0,0,0,.3);
     }
-    #sidebar.collapsed { transform: translateY(calc(100% - 48px)); }
+    #sidebar.collapsed {
+        transform: translateY(calc(100% - 52px));
+        box-shadow: 0 -2px 16px rgba(0,0,0,.2);
+    }
 
     .sidebar-toggle {
         display: flex;
         position: static;
         width: 100%;
-        height: 36px;
+        height: 44px;
+        min-height: 44px;
         border-radius: 0;
         background: transparent;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
-        color: var(--clr-text2);
+        font-size: 0;
+        color: transparent;
         flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
     }
     .sidebar-toggle::before {
         content: '';
-        width: 40px;
+        width: 36px;
         height: 4px;
         background: var(--clr-surface2);
         border-radius: 2px;
+        transition: background .25s ease;
+    }
+    #sidebar.collapsed .sidebar-toggle::before {
+        background: var(--clr-text2);
     }
 
     #map { right: 0; bottom: 0; }
 
-    .sidebar-content { padding: 12px 16px 24px; }
+    .sidebar-content {
+        padding: 4px 16px 24px;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        gap: 12px;
+    }
+
+    /* Compact header */
+    .sidebar-header { padding-bottom: 6px; }
+    .sidebar-header h1 { font-size: 1.35rem; }
+    .sidebar-header .subtitle { font-size: .78rem; }
+
+    /* Prevent iOS zoom on input focus */
+    .input-wrapper input { font-size: 16px; }
+
+    /* Icon-only locate button on mobile */
+    .locate-text { display: none; }
+    .locate-btn {
+        padding: 0 10px;
+        min-width: 42px;
+        min-height: 42px;
+        font-size: 1.1rem;
+        justify-content: center;
+    }
+
+    /* Larger touch targets */
+    .icon-btn { min-width: 42px; min-height: 42px; }
+
+    .suggestions li {
+        padding: 14px;
+        font-size: .88rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Walk buttons */
+    .walk-btn {
+        padding: 10px 6px;
+        font-size: .88rem;
+        min-height: 44px;
+    }
+
+    /* Primary action button */
+    .primary-btn {
+        padding: 15px;
+        font-size: 1.02rem;
+        min-height: 50px;
+    }
+
+    /* Swap button */
+    .swap-btn { min-height: 36px; }
+
+    /* Route info stats */
+    .stat-card { padding: 10px 8px; }
+    .stat-value { font-size: 1.1rem; }
+
+    /* Google Maps button */
+    .gmaps-btn { padding: 12px; min-height: 44px; }
+
+    /* Legend compact */
+    .legend { padding-top: 8px; }
+
+    /* About & credit */
+    .about-btn { min-height: 44px; padding: 12px; }
+    .builder-credit { font-size: .7rem; }
+
+    /* About modal full-mobile */
+    .about-card {
+        width: 96vw;
+        max-height: 88vh;
+        padding: 24px 18px 20px;
+        border-radius: 14px;
+    }
+    .about-section { padding: 12px 14px; }
+    .about-close {
+        top: 8px;
+        left: 10px;
+        font-size: 1.8rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Toast above collapsed sidebar */
+    #toast-container {
+        top: auto;
+        bottom: 70px;
+    }
+
+    /* Pick banner */
+    .pick-banner { padding: 10px 12px; }
+    .pick-banner span { font-size: .82rem; }
+
     .mode-selector { flex-direction: column; }
+}
+
+/* ---------- Landscape phones ---------- */
+@media (max-width: 768px) and (orientation: landscape) {
+    #sidebar { max-height: 50vh; }
+}
+
+/* ---------- Extra-small phones ---------- */
+@media (max-width: 380px) {
+    .sidebar-content { padding: 4px 12px 20px; gap: 10px; }
+    .sidebar-header h1 { font-size: 1.2rem; }
+    .walk-btn { font-size: .8rem; padding: 8px 4px; }
+    .primary-btn { padding: 13px; font-size: .95rem; }
+    .stat-value { font-size: 1rem; }
+    .about-card { padding: 20px 14px 16px; }
 }

@@ -28,6 +28,8 @@ function isInBounds(lat, lon) {
            lon >= IL_BOUNDS.west && lon <= IL_BOUNDS.east;
 }
 
+function isMobile() { return window.innerWidth <= 768; }
+
 // ---------------------------------------------------------------------------
 // Initialise
 // ---------------------------------------------------------------------------
@@ -73,6 +75,11 @@ function handleMapClick(e) {
         setEnd(lat, lng, `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
     }
     exitPickMode();
+
+    // On mobile, re-open sidebar after picking a point
+    if (isMobile()) {
+        document.getElementById('sidebar').classList.remove('collapsed');
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -87,6 +94,11 @@ function enterPickMode(which) {
         ? 'לחצו על המפה לבחירת נקודת מוצא'
         : 'לחצו על המפה לבחירת יעד';
     banner.classList.remove('hidden');
+
+    // On mobile, collapse sidebar so user can tap the map
+    if (isMobile()) {
+        document.getElementById('sidebar').classList.add('collapsed');
+    }
 }
 
 function exitPickMode() {
@@ -330,7 +342,16 @@ function displayResults(data) {
     const coords = route.geometry.coordinates;
     const bounds = L.latLngBounds(coords.map(c => [c[1], c[0]]));
     shelters.forEach(s => bounds.extend([s.lat, s.lon]));
-    S.map.fitBounds(bounds, { padding: [40, 40] });
+
+    const fitOpts = isMobile()
+        ? { paddingTopLeft: [20, 20], paddingBottomRight: [20, 80] }
+        : { padding: [40, 40] };
+    S.map.fitBounds(bounds, fitOpts);
+
+    // On mobile, collapse sidebar to reveal the map
+    if (isMobile()) {
+        setTimeout(() => document.getElementById('sidebar').classList.add('collapsed'), 350);
+    }
 }
 
 // ---------------------------------------------------------------------------
